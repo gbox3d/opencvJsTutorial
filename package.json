@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "http": "npx http-server ./",
+    "https" : "npx http-server -S -C cert.pem",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

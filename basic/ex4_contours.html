@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>ex3</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+  <script src="../libs/threejs/three.min.js"></script>
+  <script src="../libs/gbox3d/gl-matrix-min.js"></script>
+  <script src="../libs/gbox3d/gl-matics.js"></script>
+  <script src="https://gbox3d.github.io/opencvJsTutorial/libs//opencv.js"></script>
+
+  <!--<script src="https://cdn.jsdelivr.net/npm/opencv.js@1.2.1/opencv.min.js"></script>-->
+
+
+
+</head>
+
+<body>
+
+<div>
+  <canvas id="mainCanvas" width="512" height="512"> </canvas>
+</div>
+
+<script>
+
+  var mainCanvas = document.getElementById('mainCanvas');
+  // instantiate a loader
+  var loader = new THREE.ImageLoader();
+
+  // load a image resource
+  loader.load(
+    // resource URL
+    '../res/test2.png',
+    // onLoad callback
+    function (image) {
+      // use the image, e.g. draw part of it on a canvas
+      let canvas = mainCanvas;
+      let context = canvas.getContext('2d');
+
+      let src = cv.imread(image);
+
+      let dst = cv.Mat.zeros(src.cols, src.rows, cv.CV_8UC3);
+      cv.cvtColor(src, src, cv.COLOR_RGBA2GRAY, 0);
+      cv.threshold(src, src, 120, 200, cv.THRESH_BINARY);
+      let contours = new cv.MatVector();
+      let hierarchy = new cv.Mat();
+// You can try more different parameters
+      cv.findContours(src, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+// draw contours with random Scalar
+      for (let i = 0; i < contours.size(); ++i) {
+        let color = new cv.Scalar(255,0,0);
+        cv.drawContours(dst, contours, i, color, 1, cv.LINE_8, hierarchy, 100);
+      }
+      //cv.imshow('canvasOutput', dst);
+      cv.imshow(mainCanvas, dst);
+
+      src.delete(); dst.delete(); contours.delete(); hierarchy.delete();
+
+      //mat.delete();
+    },
+
+    // onProgress callback currently not supported
+    undefined,
+
+    // onError callback
+    function () {
+      console.error('An error happened.');
+    }
+  );
+</script>
+
+</body>
+
+</html>

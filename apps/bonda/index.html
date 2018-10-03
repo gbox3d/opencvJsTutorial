@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>ex3</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+  <script src="../../libs/threejs/three.min.js"></script>
+  <script src="https://gbox3d.github.io/opencvJsTutorial/libs//opencv.js"></script>
+
+</head>
+
+<body>
+
+<div>
+
+  <video style="display: none;" id="videoInput" width="320" height="240" ></video>
+  <canvas id="canvasOutput" width="320" height="240"> </canvas>
+
+  <div>
+    <button id="btn-start">start cam</button>
+    <button id="btn-capture">start capture</button>
+  </div>
+</div>
+
+<script>
+
+  var theApp = {}
+
+  function startCamera(resolution, callback, videoId) {
+
+    // const constraints = {
+    //   'qvga': {width: {exact: 320}, height: {exact: 240}},
+    //   'vga': {width: {exact: 640}, height: {exact: 480}},
+    //   'hd': {width: {exact: 1280}, height: {exact: 720}}
+    // };
+
+    let video = document.getElementById('videoInput');
+    if (!video) {
+      video = document.createElement('video');
+    }
+
+    // let videoConstraint = constraints[resolution];
+    // if (!videoConstraint) {
+    //   videoConstraint = true;
+    // }
+
+    navigator.mediaDevices.getUserMedia({
+      //video : {width: {exact: 1280}, height: {exact: 720}},
+      video: { facingMode: { exact: "environment" } }, //후방 카메라 선택
+      //video: videoConstraint,
+      audio: false
+    })
+      .then(function(stream) {
+        video.srcObject = stream;
+        video.play();
+        console.log(self)
+        theApp.video = video;
+        theApp.stream = stream;
+        theApp.onCameraStartedCallback = callback;
+        video.addEventListener('canplay', function (e) {
+          console.log(e)
+        }, false);
+      })
+      .catch(function(err) {
+        //self.printError('Camera Error: ' + err.name + ' ' + err.message);
+        console.log('Camera Error: ' + err.name + ' ' + err.message)
+      });
+  };
+
+  function start() {
+
+    let video = theApp.video;
+    let src = new cv.Mat(video.height, video.width, cv.CV_8UC4);
+    let _gry = new cv.Mat(video.height, video.width, cv.CV_8UC1);
+    let dst = new cv.Mat(video.height, video.width, cv.CV_8UC1);
+    let cap = new cv.VideoCapture(video);
+
+    let _canvas = document.querySelector('#canvasOutput');
+    _canvas.width = video.width;
+    _canvas.height = video.height;
+
+    let streaming = true
+
+    const FPS = 30;
+    function processVideo() {
+      try {
+        if (!streaming) {
+          // clean and stop.
+          src.delete();
+          dst.delete();
+          return;
+        }
+        let begin = Date.now();
+        // start processing.
+        cap.read(src);
+
+        //let src = cv.imread(image);
+        //let _src = src.clone()
+
+        let dst = cv.Mat.zeros(src.cols, src.rows, cv.CV_8UC3);
+        cv.cvtColor(src, _gry, cv.COLOR_RGBA2GRAY, 0);
+        //cv.cvtColor(src, dst, cv.CV_8UC3, 0);
+
+        cv.threshold(_gry, _gry, 120, 200, cv.THRESH_BINARY);
+        let contours = new cv.MatVector();
+        let hierarchy = new cv.Mat();
+// You can try more different parameters
+        cv.findContours(_gry, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+
+// draw contours with random Scalar
+        for (let i = 0; i < contours.size(); ++i) {
+          let color = new cv.Scalar(255,0,0,255); //cv.CV_8UC4 컬러일경우 RGBA
+          cv.drawContours(src, contours, i, color, 2, cv.LINE_8, hierarchy, 100);
+        }
+        cv.imshow('canvasOutput', src);
+
+        //dst.delete();
+        contours.delete(); hierarchy.delete();
+
+
+
+
+
+        // schedule the next one.
+        let delay = 1000/FPS - (Date.now() - begin);
+        setTimeout(processVideo, delay);
+      } catch (err) {
+        console.log(err)
+        //utils.printError(err);
+      }
+    };
+
+    // schedule the first one.
+    setTimeout(processVideo, 0);
+
+  }
+
+  document.querySelector('#btn-start').addEventListener('click',function () {
+    startCamera(function (e) {
+
+        console.log('camera start')
+        console.log(e);
+
+      },
+      'videoInput')
+  })
+
+  document.querySelector('#btn-capture').addEventListener('click',function () {
+    start()
+  })
+
+</script>
+
+</body>
+
+</html>
