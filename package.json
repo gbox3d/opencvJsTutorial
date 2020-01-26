@@ -16,6 +16,9 @@
     "http-server": "^0.11.1"
   },
   "dependencies": {
-    "electron": "^3.0.2"
+    "canvas": "^2.6.1",
+    "electron": "^3.0.2",
+    "jimp": "^0.9.3",
+    "jsdom": "^16.0.1"
   }
 }
