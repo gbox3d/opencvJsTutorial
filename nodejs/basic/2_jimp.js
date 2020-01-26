@@ -27,7 +27,7 @@ async function onRuntimeInitialized() {
         height: dst.rows,
         data: Buffer.from(dst.data)
     })
-        .write('output.png');
+        .write('../../temp/output.png');
 
     src.delete();
     dst.delete();

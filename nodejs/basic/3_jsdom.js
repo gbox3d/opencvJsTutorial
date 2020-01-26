@@ -25,7 +25,7 @@ const { writeFileSync } = require('fs');
     // we create an object compatible HTMLCanvasElement
     const canvas = createCanvas(dst.cols,dst.rows);
     cv.imshow(canvas, dst);
-    writeFileSync('output.jpg', canvas.toBuffer('image/jpeg'));
+    writeFileSync('../../temp/output.jpg', canvas.toBuffer('image/jpeg'));
     src.delete();
     dst.delete();
 })();
