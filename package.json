@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "canvas": "^2.6.1",
-    "electron": "^3.0.2",
+    "electron": "^9.1.0",
     "jimp": "^0.9.3",
     "jsdom": "^16.0.1"
   }
